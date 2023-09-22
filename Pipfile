@@ -1,0 +1,22 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+linkedin-api = {git = "git+https://github.com/tomquirk/linkedin-api.git"}
+langchain = "*"
+openai = "*"
+dataclasses-json = "*"
+dateutils = "*"
+python-dateutil = "*"
+duckdb = "*"
+streamlit = "*"
+azure-functions = "*"
+azure-functions-durable = "*"
+
+[dev-packages]
+ipykernel = "*"
+
+[requires]
+python_version = "3.11"
