@@ -54,11 +54,11 @@ def job_search_orchestrator(context: df.DurableOrchestrationContext):
     current_time: JobSearchWatermark = yield context.call_activity("current_time")
 
     entityId = df.EntityId("JobSearchWatermark", keywords)
-    entity = yield context.call_entity(entityId, "get")
-    prev_time: JobSearchWatermark = JobSearchWatermark.from_json(entity["__data__"])
+    entity_value = yield context.call_entity(entityId, "get")
+    prev_time = JobSearchWatermark.from_float_value(entity_value)
+    # prev_time: JobSearchWatermark = JobSearchWatermark.from_json(entity["__data__"])
 
     diff = (current_time.value - prev_time.value).total_seconds()
-
 
     # Search for jobs
     raw_search_results: LinkedinSearchLoad = yield context.call_activity(
@@ -76,7 +76,7 @@ def job_search_orchestrator(context: df.DurableOrchestrationContext):
     job_infos: Sequence[JobInfo] = yield context.task_all(tasks)
 
     # Update timestamp
-    entity = yield context.call_entity(entityId, "set", current_time)
+    entity = yield context.call_entity(entityId, "set", current_time.get_float_value())
 
     return job_infos
 
