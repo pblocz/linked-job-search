@@ -4,7 +4,7 @@ from langchain.prompts import ChatPromptTemplate
 from langchain.chains.openai_functions import (
     create_structured_output_chain,
 )
-from langchain import PromptTemplate
+from langchain.prompts import PromptTemplate
 
 from jobsearch.models import SummaryJobLangChain
 
