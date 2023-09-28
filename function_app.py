@@ -90,7 +90,7 @@ def job_info_orchestrator(context: df.DurableOrchestrationContext):
     entity = df.EntityId("JobProcessed", job_id)
     has_run = yield context.call_entity(entity, "get")
     if has_run:
-        return None
+        return 0
 
     # Process job
     job_info = yield context.call_activity("query_info", job)
@@ -128,12 +128,12 @@ def search(query: SearchParam):
     )
     logging.info(f"query retuned {len(jobs_reply)} results")
 
-    storage = StorageLayer()
-    storage.persist_on_storage(
-        "raw/job_searches/" + search_load.get_path_part(),
-        search_load.get_file_name(),
-        search_load,
-    )
+    # storage = StorageLayer()
+    # storage.persist_on_storage(
+    #     "raw/job_searches/" + search_load.get_path_part(),
+    #     search_load.get_file_name(),
+    #     search_load,
+    # )
 
     return search_load
 
@@ -159,7 +159,7 @@ def persists_query_in_cosmos(
         message = {"id": job_id, "query": query}
         messages.append(func.Document.from_dict(message))
     cosmos.set(messages)
-    return ""
+    return 0
 
 
 @app.activity_trigger(input_name="job")
@@ -188,7 +188,7 @@ def persist_job_info(job, cosmos: func.Out[func.Document]):
     data = job.to_dict()
     data["id"] = data["job_posting_id"]
     cosmos.set(func.Document.from_dict(data))
-    return ""
+    return 0
 
 
 from function import job_search_entity, job_process_entity

@@ -10,10 +10,42 @@ from dataclasses import dataclass, field, InitVar
 
 from .models import JobInfo
 
+import os
+from azure.storage.blob import BlobServiceClient
+
+def read_file_from_storage_account():
+    # Step 2: Retrieve the connection string from environment variables
+    connection_string = os.environ["AzureWebJobsStorage"]
+
+    # Step 3: Create a BlobServiceClient using the connection string
+    blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+
+    # Step 4: Specify the container and blob name
+    container_name = "config"
+    blob_name = "cookies_alternative.json"
+
+    # Create a BlobClient for the specified container and blob
+    blob_client = blob_service_client.get_blob_client(container=container_name, blob=blob_name)
+
+    try:
+        # Step 5: Download the file content
+        blob_data = blob_client.download_blob()
+        file_content = blob_data.readall()
+
+        # Return the file content or perform further operations
+        return file_content
+    except Exception as e:
+        # Handle any exceptions that may occur
+        # ...
+        raise
+
+# Call the function to read the file
+
+
 
 def load_cookies() -> RequestsCookieJar:
-
-    cookies = json.load(open('./cookies.json')) # Path of exported cookie via https://www.editthiscookie.com/
+    file_content = read_file_from_storage_account()
+    cookies = json.loads(file_content) # Path of exported cookie via https://www.editthiscookie.com/
 
     cookie_jar = RequestsCookieJar()
 
