@@ -7,6 +7,7 @@ from typing import Optional
 
 from langchain.pydantic_v1 import BaseModel, Field
 from typing import Optional, List
+import jmespath as jm
 
 
 @dataclass_json
@@ -21,17 +22,29 @@ class JobInfo:
     summary: Optional["SummaryJob"] = None
     linkedin_source_job: Optional[dict] = None
 
+    EXPRESSION = {
+        "job_posting_id": "jobPostingId",
+        "listed_at": "listedAt",
+        "title": "title",
+        "company_name": 'companyDetails."com.linkedin.voyager.deco.jobs.web.shared.WebCompactJobPostingCompany".companyResolutionResult.name',
+        "location": "formattedLocation",
+        "description": "description.text"
+    }
+
     @staticmethod
     def from_job_info(job_info) -> "JobInfo":
+        data = {k: jm.search(exp, job_info) for k, exp in JobInfo.EXPRESSION.items()}
+
         return JobInfo(
-            job_posting_id=job_info["jobPostingId"],
-            listed_at=job_info["listedAt"],
-            title=job_info["title"],
-            company_name=job_info["companyDetails"][
-                "com.linkedin.voyager.deco.jobs.web.shared.WebCompactJobPostingCompany"
-            ]["companyResolutionResult"]["name"],
-            location=job_info["formattedLocation"],
-            description=job_info["description"]["text"],
+            # job_posting_id=job_info["jobPostingId"],
+            # listed_at=job_info["listedAt"],
+            # title=job_info["title"],
+            # company_name=job_info["companyDetails"][
+            #     "com.linkedin.voyager.deco.jobs.web.shared.WebCompactJobPostingCompany"
+            # ]["companyResolutionResult"]["name"],
+            # location=job_info["formattedLocation"],
+            # description=job_info["description"]["text"],
+            **data,
             linkedin_source_job = job_info,
         )
 
