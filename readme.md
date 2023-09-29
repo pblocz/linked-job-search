@@ -2,7 +2,7 @@
 
 This GitHub project combines Azure Functions, Azure Cosmos DB, and Azure Storage to scrape LinkedIn job listings and extract information using OpenAI's Language Model.
 
-It is meant as a personal project to play around with the LinkedIn API and see what can be done with LLMs to extract insights from the free text that are the job listings.
+It is meant as a personal project to play around with the LinkedIn API, see what can be done with LLMs to extract insights from the free text that are the job listings and also test the Azure Functions V2 model for Python with Durable Functions.
 
 
 ## Disclaimer
