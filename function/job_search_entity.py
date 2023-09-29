@@ -56,7 +56,7 @@ def job_search_watermark_entity_function(context: df.DurableEntityContext):
 @app.durable_client_input(client_name="client")
 async def reset_job_search_watermark(req: func.HttpRequest, client: df.DurableOrchestrationClient) -> func.HttpResponse:
 
-    current_time = JobSearchWatermark(datetime.now() - timedelta(days=1))
+    current_time = JobSearchWatermark(datetime.now() - timedelta(hours=1))
 
     keywords = "Senior Data Scientist"
     entityId = df.EntityId("JobSearchWatermark", keywords)
