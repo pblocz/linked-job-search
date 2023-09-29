@@ -1,8 +1,10 @@
 from datetime import datetime
 import json
+import os
 from typing import Sequence
 from dataclasses import dataclass
 import azure.functions as func
+import traceback
 import logging
 
 # app = func.FunctionApp(http_auth_level=func.AuthLevel.FUNCTION)
@@ -45,38 +47,59 @@ class SearchParam:
     listed_offset: int
 
 
+def send_status_message(context, message):
+    return context.call_http(
+        method="post",
+        uri=os.environ["OrchestratorStatusUri"], 
+        content=json.dumps(message))
+
+
 # Orchestrator
 @app.orchestration_trigger(context_name="context")
 def job_search_orchestrator(context: df.DurableOrchestrationContext):
     keywords = context.get_input()
     logging.warn(keywords)
+    message = {"success": True, "keywords": keywords}
 
-    current_time: JobSearchWatermark = yield context.call_activity("current_time")
+    try:
+        current_time: JobSearchWatermark = yield context.call_activity("current_time")
 
-    entityId = df.EntityId("JobSearchWatermark", keywords)
-    entity_value = yield context.call_entity(entityId, "get")
-    prev_time = JobSearchWatermark.from_float_value(entity_value)
-    # prev_time: JobSearchWatermark = JobSearchWatermark.from_json(entity["__data__"])
+        entityId = df.EntityId("JobSearchWatermark", keywords)
+        entity_value = yield context.call_entity(entityId, "get")
+        prev_time = JobSearchWatermark.from_float_value(entity_value)
+        # prev_time: JobSearchWatermark = JobSearchWatermark.from_json(entity["__data__"])
 
-    diff = (current_time.value - prev_time.value).total_seconds()
+        diff = (current_time.value - prev_time.value).total_seconds()
 
-    # Search for jobs
-    raw_search_results: LinkedinSearchLoad = yield context.call_activity(
-        "search", SearchParam(keywords, diff)
-    )
+        # Search for jobs
+        raw_search_results: LinkedinSearchLoad = yield context.call_activity(
+            "search", SearchParam(keywords, diff)
+        )
+        message["search_results"] = len(raw_search_results.jobs_reply)
 
-    # Store in cosmos
-    yield context.call_activity("persists_query_in_cosmos", raw_search_results)
+        # Store in cosmos
+        yield context.call_activity("persists_query_in_cosmos", raw_search_results)
 
-    # Run processing for each job result
-    tasks = [
-        context.call_sub_orchestrator("job_info_orchestrator", result)
-        for result in raw_search_results.jobs_reply
-    ]
-    job_infos: Sequence[JobInfo] = yield context.task_all(tasks)
+        # Run processing for each job result
+        tasks = [
+            context.call_sub_orchestrator("job_info_orchestrator", result)
+            for result in raw_search_results.jobs_reply
+        ]
+        job_infos: Sequence[JobInfo] = yield context.task_all(tasks)
 
-    # Update timestamp
-    entity = yield context.call_entity(entityId, "set", current_time.get_float_value())
+        # Update timestamp
+        entity = yield context.call_entity(entityId, "set", current_time.get_float_value())
+
+    except Exception as e:
+        message["success"] = False
+        message["error"] = str(e)
+        message["error_stack"] = traceback.format_exc()
+
+        yield send_status_message(context, message)
+        
+        raise
+
+    yield send_status_message(context, message)
 
     return job_infos
 
