@@ -1,4 +1,4 @@
-# LinkedIn Job Scraper with OpenAI Language Model
+# LinkedIn Job Search with OpenAI Language Model
 
 This GitHub project combines Azure Functions, Azure Cosmos DB, and Azure Storage to scrape LinkedIn job listings and extract information using OpenAI's Language Model.
 
