@@ -74,7 +74,12 @@ For the post-processing done by the LLM, you will need to update both the prompt
 
 The azure functions has two orchestrators and a couple of activities to manage all the workflow. At a high level it queries LinkedIn for the jobs, extracts the job description and parses it using Open AI.
 
-This is an example of how the Open AI procesing would work. For this job for a Quatermaster: 
+Here is the diagram of the azure function as shown by the az-func-as-graph extension for reference on how the flow works:
+
+![Function diagram](./docs/func-map.svg)
+
+
+To ilustrate the processing of the descriptions, this is an example of how the Open AI extraction would work. For this job for a Quatermaster for the Blackbeard's Crew:
 
 ```markdown
 Captain Blackbeard's Crew is a renowned group of swashbuckling pirates operating in the Mediterranean Sea. We specialize in high-seas adventures, treasure hunts, and thrilling escapades. Our crew is known for its camaraderie, daring spirit, and love for the open waters.
@@ -147,6 +152,8 @@ The output after processing it would be:
     ]
 }
 ```
+
+This json is stored in the Cosmos DB, so it can be queried and used.
 
 ## Contributing
 Contributions are welcome. Create pull requests for improvements.
