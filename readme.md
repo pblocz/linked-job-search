@@ -57,6 +57,12 @@ If everything runs correctly you can deploy it through VS Code itself, as well a
 
 Replace placeholders with your actual configuration values. Most of them are self-explanatory or standard for Azure Functions. `OrchestratorStatusUri` is a URL to send a POST request with the status of orchestrators after it finishes.
 
+## Folder Structure
+- `jobsearch/`: Modules for the different APIs used.
+- `function/`: Durable entities and other functions.
+- `tests/`: At the moment only one openai test for the prompt.
+- `function_app.py`: Main entry point of the azure functin.
+
 ## Usage
 The Azure Function will automatically query LinkedIn, process data, and store results in Cosmos DB. Use stored data as needed.
 
@@ -64,10 +70,83 @@ To customize how it works you can update the queries that are being made to Link
 
 For the post-processing done by the LLM, you will need to update both the prompts at `openai.py` and the models for the job summary at `models.py`
 
-## Folder Structure
-- `jobsearch/`: Modules for the different APIs used.
-- `function/`: Durable entities and other functions.
-- `function_app.py`: Main entry point of the azure functin.
+## How it works
+
+The azure functions has two orchestrators and a couple of activities to manage all the workflow. At a high level it queries LinkedIn for the jobs, extracts the job description and parses it using Open AI.
+
+This is an example of how the Open AI procesing would work. For this job for a Quatermaster: 
+
+```markdown
+Captain Blackbeard's Crew is a renowned group of swashbuckling pirates operating in the Mediterranean Sea. We specialize in high-seas adventures, treasure hunts, and thrilling escapades. Our crew is known for its camaraderie, daring spirit, and love for the open waters.
+
+Are you ready to embark on a daring career as a Quartermaster Pirate in the Mediterranean? Join our crew and be part of a legendary pirate adventure! As the Quartermaster, you will play a crucial role in maintaining order and ensuring the smooth operation of our pirate ship.
+
+## Key Responsibilities:
+
+1. **Crew Management**: As the Quartermaster, you'll oversee the crew, assigning duties, and maintaining discipline on board. Your leadership ensures that everyone is working together efficiently.
+
+2. **Supplies and Provisions**: Manage the ship's supplies, including food, water, and ammunition. Ensure that the crew has everything they need for the voyage.
+
+3. **Navigation**: Assist the ship's navigator in plotting courses and navigating the treacherous Mediterranean waters. Your knowledge of maps and charts is essential.
+
+4. **Conflict Resolution**: Mediate disputes among the crew, helping to maintain a harmonious and productive environment.
+
+5. **Booty Distribution**: When treasure is plundered, you'll help distribute the spoils fairly among the crew, keeping morale high.
+
+6. **Combat Readiness**: Ensure that weapons and defenses are in top condition, ready for any skirmish or battle that may arise.
+
+## Qualifications:
+
+- Experience as a sailor or pirate in the Mediterranean.
+- Strong leadership and organizational skills.
+- Proficiency in navigation, map reading, and sailing.
+- Ability to make quick decisions under pressure.
+- Excellent interpersonal and conflict resolution skills.
+- Fearless spirit and a passion for adventure.
+
+## Benefits:
+
+- Adventure of a lifetime on the high seas.
+- Camaraderie with a diverse and passionate crew.
+- Opportunities for career advancement within the crew.
+- Competitive remuneration from shares of the plundered treasures, commensurate with experience and contribution to our pirate exploits.
+
+## How to Apply:
+
+If you're ready to embrace the pirate's life and become our next Quartermaster, send your application via carrier pigeon (or a modern equivalent). Include your pirate name, a list of your past pirate adventures, and a brief message in a bottle telling us why you're the perfect fit for our crew.
+
+Join Captain Blackbeard's Crew and make history on the Mediterranean waves! A pirate's life awaits you!
+```
+
+The output after processing it would be:
+```json
+{
+    "location": "Mediterranean Sea",
+    "remote_from_spain": false,
+    "salary": "Competitive remuneration from shares of the plundered treasures, commensurate with experience and contribution to our pirate exploits.",
+    "role_responsabilities": [
+        "Oversee the crew, assigning duties, and maintaining discipline on board.",
+        "Manage the ship\"s supplies, including food, water, and ammunition.", "Assist the ship\"s navigator in plotting courses and navigating the treacherous Mediterranean waters.",
+        "Mediate disputes among the crew, helping to maintain a harmonious and productive environment.",
+        "Help distribute the spoils fairly among the crew, keeping morale high.",
+        "Ensure that weapons and defenses are in top condition, ready for any skirmish or battle that may arise."
+    ],
+    "required_experience": [
+        "Experience as a sailor or pirate in the 17th century Mediterranean.",
+        "Strong leadership and organizational skills.",
+        "Proficiency in navigation, map reading, and sailing.",
+        "Ability to make quick decisions under pressure.",
+        "Excellent interpersonal and conflict resolution skills.",
+        "Fearless spirit and a passion for adventure."
+    ],
+    "benefits": [
+        "Adventure of a lifetime on the high seas.",
+        "Camaraderie with a diverse and passionate crew.",
+        "Opportunities for career advancement within the crew.",
+        "Competitive remuneration from shares of the plundered treasures, commensurate with experience and contribution to our pirate exploits."
+    ]
+}
+```
 
 ## Contributing
 Contributions are welcome. Create pull requests for improvements.
